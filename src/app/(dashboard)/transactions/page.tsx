@@ -5,13 +5,16 @@ import { getTransactions } from '@/lib/actions/transactions';
 
 export const metadata: Metadata = { title: 'Riwayat Transaksi - Bolu Anisa POS' };
 
-export default async function Page() {
+async function TransactionDataWrapper() {
   const result = await getTransactions();
   const transactions = result.success && result.data ? result.data : [];
+  return <TransactionHistory initialData={transactions} />;
+}
 
+export default function Page() {
   return (
     <Suspense fallback={<div className="p-6">Memuat riwayat transaksi...</div>}>
-      <TransactionHistory initialData={transactions} />
+      <TransactionDataWrapper />
     </Suspense>
   );
 }

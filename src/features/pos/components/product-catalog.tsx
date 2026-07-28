@@ -145,7 +145,21 @@ export function ProductCatalog({
             >
               <div className="aspect-[4/3] bg-muted relative overflow-hidden flex items-center justify-center">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" />
+                  <>
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name} 
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" 
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        e.currentTarget.nextElementSibling?.classList.add('flex');
+                      }}
+                    />
+                    <div className="hidden w-full h-full items-center justify-center text-muted-foreground bg-primary/5 text-4xl font-bold text-primary/20">
+                      {product.name.charAt(0)}
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-primary/5 text-4xl font-bold text-primary/20">
                     {product.name.charAt(0)}

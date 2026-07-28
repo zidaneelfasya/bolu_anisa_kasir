@@ -19,6 +19,7 @@ type Category = { id: string; name: string; };
 type Product = {
   id: string; sku: string; name: string; price: string; stock: number;
   categoryName: string | null; categoryId: string | null; status: string;
+  imageUrl: string | null; barcode: string | null;
 };
 
 export function POSPage({ 

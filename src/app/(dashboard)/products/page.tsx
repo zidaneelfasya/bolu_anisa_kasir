@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Produk - Bolu Anisa POS',
 };
 
-export default async function Page() {
+async function ProductsDataWrapper() {
   const [productsResult, categoriesResult] = await Promise.all([
     getProducts(),
     getCategories(),
@@ -17,9 +17,13 @@ export default async function Page() {
   const products = productsResult.success && productsResult.data ? productsResult.data : [];
   const categories = categoriesResult.success && categoriesResult.data ? categoriesResult.data : [];
 
+  return <ProductList initialData={products} categories={categories} />;
+}
+
+export default function Page() {
   return (
     <Suspense fallback={<div className="p-6">Memuat data produk...</div>}>
-      <ProductList initialData={products} categories={categories} />
+      <ProductsDataWrapper />
     </Suspense>
   );
 }
