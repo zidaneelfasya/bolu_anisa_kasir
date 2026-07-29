@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getProducts } from '@/lib/actions/products';
 import { getCategories } from '@/lib/actions/categories';
+import { POSSkeleton } from '@/features/pos/components/pos-skeleton';
 
 export const metadata: Metadata = {
   title: 'Kasir - Bolu Anisa POS',
@@ -22,7 +23,7 @@ async function POSDataWrapper() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="p-6">Memuat sistem kasir...</div>}>
+    <Suspense fallback={<POSSkeleton />}>
       <POSDataWrapper />
     </Suspense>
   );

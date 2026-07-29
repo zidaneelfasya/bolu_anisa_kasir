@@ -34,8 +34,33 @@ export function ProductCatalog({
 }) {
   const [activeCategory, setActiveCategory] = React.useState('Semua');
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [visibleCount, setVisibleCount] = React.useState(40);
   const addItem = useCartStore((state) => state.addItem);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const observerTarget = React.useRef<HTMLDivElement>(null);
+
+  // Reset visible count when filter changes
+  React.useEffect(() => {
+    setVisibleCount(40);
+  }, [activeCategory, searchQuery]);
+
+  // Infinite Scroll Observer
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + 40);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // Focus search input when typing anywhere (good for barcode scanners)
   React.useEffect(() => {
@@ -126,7 +151,7 @@ export function ProductCatalog({
       {/* Product Grid */}
       <div className="flex-1 overflow-y-auto pr-2 pb-24">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredProducts.map(product => (
+          {filteredProducts.slice(0, visibleCount).map(product => (
             <div 
               key={product.id} 
               className={cn(
@@ -149,6 +174,7 @@ export function ProductCatalog({
                     <img 
                       src={product.imageUrl} 
                       alt={product.name} 
+                      loading="lazy"
                       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" 
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
@@ -186,6 +212,13 @@ export function ProductCatalog({
             </div>
           )}
         </div>
+        
+        {/* Infinite Scroll Target */}
+        {visibleCount < filteredProducts.length && (
+          <div ref={observerTarget} className="mt-6 flex justify-center py-6">
+            <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );

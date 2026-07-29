@@ -2,14 +2,7 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  DollarSign, 
-  ShoppingCart, 
-  CreditCard, 
-  Activity 
-} from 'lucide-react';
+import { DollarSign, ShoppingCart, Activity, Package } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -17,115 +10,103 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
+import { TopSellingList } from './top-selling-list';
+import { AlertsSection } from './alerts-section';
+import { ProductionActivity } from './production-activity';
 
-const salesData = [
-  { time: '08:00', total: 1200000 },
-  { time: '10:00', total: 2500000 },
-  { time: '12:00', total: 3800000 },
-  { time: '14:00', total: 1900000 },
-  { time: '16:00', total: 4200000 },
-  { time: '18:00', total: 3100000 },
-  { time: '20:00', total: 1500000 },
-];
+type DashboardContentProps = {
+  metrics: {
+    totalTransactions: number;
+    totalOmzet: number;
+    totalLaba: number;
+    totalProduk: number;
+  };
+  chartData: { date: string; omzet: number }[];
+  topProducts: { name: string; totalSold: number }[];
+  lowStockProducts: { name: string; stock: number }[];
+};
 
-const paymentData = [
-  { name: 'QRIS', value: 45 },
-  { name: 'Tunai', value: 30 },
-  { name: 'Transfer', value: 15 },
-  { name: 'Kartu', value: 10 },
-];
-const COLORS = ['#E53935', '#F59E0B', '#22C55E', '#3B82F6'];
-
-export function DashboardPage() {
+export function DashboardPage({ metrics, chartData, topProducts, lowStockProducts }: DashboardContentProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Ringkasan performa penjualan toko hari ini.</p>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard Eksekutif</h1>
+        <p className="text-sm text-muted-foreground">Ringkasan performa bisnis dan operasional toko.</p>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl shadow-sm border-border/50">
+        <Card className="rounded-2xl shadow-sm border-border/50 bg-gradient-to-br from-card to-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Penjualan</CardTitle>
-            <DollarSign className="w-4 h-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Omzet Bulan Ini</CardTitle>
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <DollarSign className="w-4 h-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(15250000)}</div>
-            <p className="text-xs text-success flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3" />
-              +12.5% dari kemarin
-            </p>
+            <div className="text-2xl font-bold">{formatCurrency(metrics.totalOmzet)}</div>
           </CardContent>
         </Card>
         
-        <Card className="rounded-2xl shadow-sm border-border/50">
+        <Card className="rounded-2xl shadow-sm border-border/50 bg-gradient-to-br from-card to-card/50">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Laba Bulan Ini</CardTitle>
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <Activity className="w-4 h-4 text-green-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(metrics.totalLaba)}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl shadow-sm border-border/50 bg-gradient-to-br from-card to-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Transaksi</CardTitle>
-            <ShoppingCart className="w-4 h-4 text-primary" />
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <ShoppingCart className="w-4 h-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">142</div>
-            <p className="text-xs text-success flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3" />
-              +8.2% dari kemarin
-            </p>
+            <div className="text-2xl font-bold">{metrics.totalTransactions}</div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border-border/50">
+        <Card className="rounded-2xl shadow-sm border-border/50 bg-gradient-to-br from-card to-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rata-rata Keranjang</CardTitle>
-            <CreditCard className="w-4 h-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Katalog Produk</CardTitle>
+            <div className="p-2 bg-orange-500/10 rounded-lg">
+              <Package className="w-4 h-4 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(107394)}</div>
-            <p className="text-xs text-destructive flex items-center mt-1">
-              <ArrowDownRight className="mr-1 h-3 w-3" />
-              -2.1% dari kemarin
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Produk Terjual</CardTitle>
-            <Activity className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">534</div>
-            <p className="text-xs text-success flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3" />
-              +14% dari kemarin
-            </p>
+            <div className="text-2xl font-bold">{metrics.totalProduk} pcs</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 rounded-2xl shadow-sm border-border/50">
+      {/* Row 2: Chart & Top Selling */}
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+        {/* Sales Chart */}
+        <Card className="col-span-1 md:col-span-2 lg:col-span-3 rounded-2xl shadow-sm border-border/50">
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Penjualan per Jam</CardTitle>
+            <CardTitle className="text-base font-semibold">Grafik Penjualan 7 Hari Terakhir</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis 
-                    dataKey="time" 
+                    dataKey="date" 
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
+                    tickFormatter={(value) => value.slice(5)} // Show MM-DD
                   />
                   <YAxis
                     stroke="#888888"
@@ -137,52 +118,27 @@ export function DashboardPage() {
                   <Tooltip 
                     cursor={{fill: 'rgba(0,0,0,0.04)'}}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value: any) => [formatCurrency(Number(value)), 'Omzet']}
+                    labelFormatter={(label) => `Tanggal: ${label}`}
                   />
-                  <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="omzet" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 rounded-2xl shadow-sm border-border/50">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Metode Pembayaran</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={paymentData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {paymentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-center gap-4 mt-2">
-              {paymentData.map((entry, index) => (
-                <div key={entry.name} className="flex items-center text-xs">
-                  <div className="w-2.5 h-2.5 rounded-full mr-1.5" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                  {entry.name}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Top Selling */}
+        <div className="col-span-1 lg:col-span-1">
+          <TopSellingList products={topProducts} />
+        </div>
       </div>
+
+      {/* Row 3: Alerts */}
+      <AlertsSection products={lowStockProducts} />
+
+      {/* Row 4: Production & Activity */}
+      <ProductionActivity />
     </div>
   );
 }

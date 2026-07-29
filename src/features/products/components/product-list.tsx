@@ -9,6 +9,7 @@ const DataTable = dynamic(
   () => import('@/components/ui/data-table').then((mod) => mod.DataTable),
   { ssr: false, loading: () => <div className="h-64 w-full bg-muted animate-pulse rounded-xl"></div> }
 );
+import { ImportProductDialog } from './import-product-dialog';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils/format';
 import {
@@ -416,17 +417,20 @@ export function ProductList({ initialData, categories }: { initialData: Product[
           <h1 className="text-2xl font-bold tracking-tight">Data Produk</h1>
           <p className="text-sm text-muted-foreground">Kelola semua produk, harga, stok, gambar, dan barcode.</p>
         </div>
-        <Button 
-          onClick={() => { 
-            form.reset({ name: '', sku: '', categoryId: null, price: 0, costPrice: 0, stock: 0, minStock: 5, imageUrl: '', barcode: '' }); 
-            setImageFile(null);
-            setIsAddOpen(true); 
-          }}
-          className="rounded-xl px-4 flex items-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Produk
-        </Button>
+        <div className="flex gap-2">
+          <ImportProductDialog />
+          <Button 
+            onClick={() => { 
+              form.reset({ name: '', sku: '', categoryId: null, price: 0, costPrice: 0, stock: 0, minStock: 5, imageUrl: '', barcode: '' }); 
+              setImageFile(null);
+              setIsAddOpen(true); 
+            }}
+            className="rounded-xl px-4 flex items-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Produk
+          </Button>
+        </div>
       </div>
 
       <DataTable columns={columns} data={initialData} searchKey="name" searchPlaceholder="Cari nama produk..." />

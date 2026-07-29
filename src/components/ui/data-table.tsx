@@ -126,26 +126,77 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
-        <div className="text-xs text-muted-foreground mr-4">
-          Menampilkan {table.getRowModel().rows.length} dari {table.getCoreRowModel().rows.length} baris
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Menampilkan {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} - {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} dari {table.getFilteredRowModel().rows.length} baris
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Sebelumnya
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Selanjutnya
-        </Button>
+        <div className="flex items-center space-x-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="hidden sm:flex"
+          >
+            Sebelumnya
+          </Button>
+
+          {(() => {
+            const currentPage = table.getState().pagination.pageIndex + 1;
+            const totalPages = table.getPageCount();
+            if (totalPages <= 1) return null;
+
+            const delta = 1;
+            const range = [];
+            const rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+                range.push(i);
+              }
+            }
+
+            for (let i of range) {
+              if (l) {
+                if (i - l === 2) {
+                  rangeWithDots.push(l + 1);
+                } else if (i - l !== 1) {
+                  rangeWithDots.push('...');
+                }
+              }
+              rangeWithDots.push(i);
+              l = i;
+            }
+
+            return rangeWithDots.map((pageNumber, index) => {
+              if (pageNumber === '...') {
+                return <span key={index} className="px-2 text-muted-foreground">...</span>;
+              }
+              return (
+                <Button
+                  key={index}
+                  variant={pageNumber === currentPage ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-9 h-9 p-0"
+                  onClick={() => table.setPageIndex((pageNumber as number) - 1)}
+                >
+                  {pageNumber}
+                </Button>
+              );
+            });
+          })()}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="hidden sm:flex"
+          >
+            Selanjutnya
+          </Button>
+        </div>
       </div>
     </div>
   );
