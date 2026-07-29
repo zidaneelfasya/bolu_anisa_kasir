@@ -6,6 +6,8 @@ import { useCartStore } from '../stores/use-cart-store';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
 import { Input } from '@/components/ui/input';
+import { useBarcodeScanner } from '@/hooks/use-barcode-scanner';
+import { toast } from 'sonner';
 
 type Category = {
   id: string;
@@ -62,9 +64,10 @@ export function ProductCatalog({
     return () => observer.disconnect();
   }, []);
 
-  // Focus search input when typing anywhere (good for barcode scanners)
+  // Focus search input when typing anywhere (good for manual typing)
   React.useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Allow barcode scanner to bypass this (it's very fast, but let's just let the hook handle it)
       if (
         e.key.length === 1 && 
         !e.ctrlKey && 
@@ -80,9 +83,26 @@ export function ProductCatalog({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
+  useBarcodeScanner({
+    onScan: (barcode: string) => {
+      const matchedProduct = products.find(p => p.barcode === barcode || p.sku === barcode);
+      if (matchedProduct && matchedProduct.stock > 0) {
+        addItem({ 
+          productId: matchedProduct.id, 
+          name: matchedProduct.name, 
+          price: parseFloat(matchedProduct.price), 
+        });
+        toast.success(`Berhasil menambahkan ${matchedProduct.name}`);
+        setSearchQuery(''); // clear if it typed into the input
+      } else {
+        toast.error(`Produk dengan barcode ${barcode} tidak ditemukan atau stok habis.`);
+      }
+    }
+  });
+
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim() !== '') {
-      // Check if the search query exactly matches a barcode
+      // Manual search exact match
       const matchedProduct = products.find(p => p.barcode === searchQuery.trim() || p.sku === searchQuery.trim());
       if (matchedProduct && matchedProduct.stock > 0) {
         addItem({ 
@@ -90,7 +110,7 @@ export function ProductCatalog({
           name: matchedProduct.name, 
           price: parseFloat(matchedProduct.price), 
         });
-        setSearchQuery(''); // clear after scan
+        setSearchQuery('');
       }
     }
   };

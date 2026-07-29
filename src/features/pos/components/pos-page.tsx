@@ -14,6 +14,8 @@ import {
   DrawerTrigger,
   DrawerTitle
 } from '@/components/ui/drawer';
+import { PaymentModal } from './payment-modal';
+import { ReceiptPrinter, ReceiptData } from './receipt-printer';
 
 type Category = { id: string; name: string; };
 type Product = {
@@ -31,27 +33,33 @@ export function POSPage({
 }) {
   const [mounted, setMounted] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
+  const [receiptData, setReceiptData] = React.useState<ReceiptData | null>(null);
+  
   const { items, clearCart, getTotal } = useCartStore();
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleCheckout = async () => {
+  const handleCheckoutClick = () => {
     if (items.length === 0) {
       toast.error('Keranjang kosong!');
       return;
     }
+    setIsPaymentModalOpen(true);
+  };
 
+  const handleConfirmPayment = async (cashReceived: number, change: number) => {
     setIsProcessing(true);
     const toastId = toast.loading('Memproses transaksi...');
 
     const payload = {
       totalAmount: getTotal(),
-      discount: 0, // Placeholder for future discount feature
+      discount: 0,
       tax: 0,
       grandTotal: getTotal(),
-      paymentMethod: 'cash', // Hardcoded for now
+      paymentMethod: 'cash',
       items: items.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
@@ -63,19 +71,44 @@ export function POSPage({
     const result = await createTransaction(payload);
     setIsProcessing(false);
 
-    if (result.success) {
+    if (result.success && result.transactionId) {
       toast.success('Transaksi berhasil!', { id: toastId });
+      
+      // Prepare receipt data
+      const newReceipt: ReceiptData = {
+        transactionId: result.transactionId || 'TRX-UNKNOWN',
+        date: new Date(),
+        cashierName: 'Kasir', // Should be fetched from session/auth in the future
+        totalAmount: payload.grandTotal,
+        cashReceived: cashReceived,
+        change: change,
+        items: items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.price * item.quantity,
+        }))
+      };
+      
+      setReceiptData(newReceipt);
+      setIsPaymentModalOpen(false);
       clearCart();
+      
+      // Delay printing to allow React to render the receipt DOM
+      setTimeout(() => {
+        window.print();
+      }, 300);
+      
     } else {
-      toast.error(result.error, { id: toastId });
+      toast.error(result.error || 'Terjadi kesalahan.', { id: toastId });
     }
   };
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F4') {
+      if (e.key === 'F4' && !isPaymentModalOpen) {
         e.preventDefault();
-        handleCheckout();
+        handleCheckoutClick();
       }
     };
 
@@ -87,8 +120,9 @@ export function POSPage({
   const cartTotal = mounted ? getTotal() : 0;
 
   return (
-    <div className="flex h-full relative">
-      <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] h-full pb-20 lg:pb-0">
+    <>
+      <div className="flex h-full relative print:hidden">
+        <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] h-full pb-20 lg:pb-0">
         <ProductCatalog products={initialProducts} categories={initialCategories} />
       </div>
 
@@ -102,11 +136,11 @@ export function POSPage({
             <span>{formatCurrency(cartTotal)}</span>
           </div>
           <button 
-            onClick={handleCheckout}
+            onClick={handleCheckoutClick}
             disabled={totalItems === 0 || isProcessing}
             className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-bold shadow-md hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {isProcessing ? 'Memproses...' : 'Bayar Sekarang (F4)'}
+            Bayar Sekarang (F4)
           </button>
         </div>
       </div>
@@ -136,16 +170,26 @@ export function POSPage({
             </div>
             <div className="p-4 border-t bg-background mt-auto">
               <button 
-                onClick={handleCheckout}
+                onClick={handleCheckoutClick}
                 disabled={totalItems === 0 || isProcessing}
                 className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-bold shadow-md disabled:opacity-50"
               >
-                {isProcessing ? 'Memproses...' : 'Bayar Sekarang'}
+                Bayar Sekarang
               </button>
             </div>
           </DrawerContent>
         </Drawer>
       </div>
     </div>
+
+      <PaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        totalAmount={cartTotal}
+        onConfirm={handleConfirmPayment}
+      />
+      
+      <ReceiptPrinter data={receiptData} />
+    </>
   );
 }

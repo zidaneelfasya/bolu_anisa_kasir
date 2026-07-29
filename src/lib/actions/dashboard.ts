@@ -1,22 +1,13 @@
 import { db } from '../db';
 import { transactions, transactionItems, products } from '../db/schema';
-import { eq, sql, desc, and, gte } from 'drizzle-orm';
+import { eq, sql, desc, and, gte, lte } from 'drizzle-orm';
 
-export async function getDashboardMetrics(range: 'today' | 'month' | 'year' = 'month') {
+export async function getDashboardMetrics(startDate: Date, endDate: Date) {
   try {
-    // Determine date filter
-    let dateFilter;
-    const now = new Date();
-    if (range === 'today') {
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      dateFilter = gte(transactions.createdAt, startOfDay);
-    } else if (range === 'month') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      dateFilter = gte(transactions.createdAt, startOfMonth);
-    } else {
-      const startOfYear = new Date(now.getFullYear(), 0, 1);
-      dateFilter = gte(transactions.createdAt, startOfYear);
-    }
+    const dateFilter = and(
+      gte(transactions.createdAt, startDate),
+      lte(transactions.createdAt, endDate)
+    );
 
     // 1. Total Transaksi & Omzet
     const txResult = await db.select({
@@ -29,7 +20,6 @@ export async function getDashboardMetrics(range: 'today' | 'month' | 'year' = 'm
     const totalOmzet = txResult[0]?.totalOmzet || 0;
 
     // 2. Laba (Profit)
-    // Profit = Total Revenue (transaction items subtotal) - Total Cost (items quantity * product costPrice)
     const profitResult = await db.select({
       totalRevenue: sql<number>`sum(${transactionItems.subtotal})::numeric`,
       totalCost: sql<number>`sum(${transactionItems.quantity} * ${products.costPrice})::numeric`,
@@ -62,14 +52,21 @@ export async function getDashboardMetrics(range: 'today' | 'month' | 'year' = 'm
   }
 }
 
-export async function getTopSellingProducts() {
+export async function getTopSellingProducts(startDate: Date, endDate: Date) {
   try {
+    const dateFilter = and(
+      gte(transactions.createdAt, startDate),
+      lte(transactions.createdAt, endDate)
+    );
+
     const result = await db.select({
       name: products.name,
       totalSold: sql<number>`sum(${transactionItems.quantity})::int`
     })
     .from(transactionItems)
     .innerJoin(products, eq(transactionItems.productId, products.id))
+    .innerJoin(transactions, eq(transactionItems.transactionId, transactions.id))
+    .where(dateFilter)
     .groupBy(products.id, products.name)
     .orderBy(desc(sql`sum(${transactionItems.quantity})`))
     .limit(5);
@@ -100,25 +97,54 @@ export async function getLowStockProducts() {
   }
 }
 
-export async function getSalesChartData() {
+export async function getSalesChartData(startDate: Date, endDate: Date, groupBy: 'day' | 'month' | 'year' = 'day') {
   try {
-    // Get last 7 days sales data
-    const last7Days = new Date();
-    last7Days.setDate(last7Days.getDate() - 6);
-    last7Days.setHours(0, 0, 0, 0);
+    const dateFilter = and(
+      gte(transactions.createdAt, startDate),
+      lte(transactions.createdAt, endDate)
+    );
+
+    let groupBySql;
+    if (groupBy === 'day') {
+      groupBySql = sql`to_char(${transactions.createdAt}, 'YYYY-MM-DD')`;
+    } else if (groupBy === 'month') {
+      groupBySql = sql`to_char(${transactions.createdAt}, 'YYYY-MM')`;
+    } else {
+      groupBySql = sql`to_char(${transactions.createdAt}, 'YYYY')`;
+    }
 
     const result = await db.select({
-      date: sql<string>`to_char(${transactions.createdAt}, 'YYYY-MM-DD')`,
+      date: sql<string>`${groupBySql}`,
       omzet: sql<number>`sum(${transactions.grandTotal})::numeric`
     })
     .from(transactions)
-    .where(gte(transactions.createdAt, last7Days))
-    .groupBy(sql`to_char(${transactions.createdAt}, 'YYYY-MM-DD')`)
-    .orderBy(sql`to_char(${transactions.createdAt}, 'YYYY-MM-DD')`);
+    .where(dateFilter)
+    .groupBy(groupBySql)
+    .orderBy(groupBySql);
 
     return { success: true, data: result };
   } catch (error) {
     console.error('Error fetching sales chart data:', error);
     return { success: false, error: 'Gagal mengambil data grafik' };
+  }
+}
+
+export async function getRecentTransactions(limitCount = 5) {
+  try {
+    const result = await db.select({
+      id: transactions.id,
+      date: transactions.createdAt,
+      totalAmount: transactions.grandTotal,
+      paymentMethod: transactions.paymentMethod,
+      status: transactions.status
+    })
+    .from(transactions)
+    .orderBy(desc(transactions.createdAt))
+    .limit(limitCount);
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error fetching recent transactions:', error);
+    return { success: false, error: 'Gagal mengambil transaksi terbaru' };
   }
 }
