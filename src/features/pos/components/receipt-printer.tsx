@@ -118,7 +118,7 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
               style={{ width: '60px', height: '60px', margin: '0 auto 8px auto', filter: 'grayscale(100%) contrast(200%)' }}
             />
             <div style={{ fontSize: '13px', fontWeight: 'bold' }}>Toko Oleh Oleh Anisa</div>
-            <div>Toko Oleh Oleh Anisa</div>
+            
             <div>Jl. Beringin</div>
             <div>Instagram : bolu_anisa</div>
           </div>
