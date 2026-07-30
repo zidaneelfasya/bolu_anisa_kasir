@@ -111,33 +111,9 @@ export function ShoppingCart() {
             <span>-{formatCurrency(discount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Pajak (11%)</span>
-          <span className="font-medium">{formatCurrency(tax)}</span>
-        </div>
-        
         <div className="pt-3 border-t flex justify-between items-center">
           <span className="font-bold text-lg">Total</span>
           <span className="font-bold text-2xl text-primary">{formatCurrency(total)}</span>
-        </div>
-
-        <button 
-          className="w-full mt-4 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold text-lg transition-all active:scale-[0.98] flex items-center justify-center shadow-sm shadow-primary/20 relative"
-          disabled={items.length === 0}
-        >
-          Bayar
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs bg-black/20 px-2 py-1 rounded">F4</span>
-        </button>
-
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Tunai', 'QRIS', 'Kartu', 'Transfer'].map(method => (
-            <button key={method} className="flex-1 min-w-[60px] py-2 text-xs font-medium border rounded-lg bg-card hover:bg-muted transition-colors">
-              {method}
-            </button>
-          ))}
-          <button className="px-3 py-2 text-xs font-medium border rounded-lg bg-card hover:bg-muted transition-colors">
-            ...
-          </button>
         </div>
 
         <div className="flex justify-center items-center mt-3 text-xs text-success bg-success/10 py-1.5 rounded-lg">

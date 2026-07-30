@@ -26,12 +26,12 @@ interface CartStore {
 
 export const useCartStore = create<CartStore>()(
   persist(
-    (set, get) => ({
-      items: [],
-      discount: 0,
-      taxRate: 0.11, // Default 11% tax
+      (set, get) => ({
+        items: [],
+        discount: 0,
+        taxRate: 0, // No tax for POS
 
-      addItem: (newItem) => {
+        addItem: (newItem) => {
         set((state) => {
           const existingItem = state.items.find((i) => i.productId === newItem.productId);
           if (existingItem) {
