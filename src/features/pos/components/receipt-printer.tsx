@@ -28,10 +28,27 @@ interface ReceiptPrinterProps {
 export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterProps>(
   ({ data }, ref) => {
     const [mounted, setMounted] = React.useState(false);
+    const [pageHeight, setPageHeight] = React.useState('auto');
+    const contentRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
       setMounted(true);
     }, []);
+
+    // Trik "Nakal" untuk mengakali printer A4:
+    // Kita hitung tinggi fisik elemen struk ini di layar (dalam pixel),
+    // lalu kita paksa Google Chrome untuk menganggap panjang kertasnya adalah persis sama dengan panjang struk!
+    React.useEffect(() => {
+      if (mounted && data && contentRef.current) {
+        setTimeout(() => {
+          if (contentRef.current) {
+            // offsetHeight mengambil tinggi total konten. Kita tambah sedikit buffer (30px) agar tidak terlalu mepet.
+            const height = contentRef.current.offsetHeight + 30;
+            setPageHeight(`${height}px`);
+          }
+        }, 150);
+      }
+    }, [data, mounted]);
 
     if (!data || !mounted) return null;
 
@@ -39,13 +56,24 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
       <div 
         id="receipt-portal-container"
         ref={ref} 
-        className="hidden print:block bg-white text-black"
       >
         <style>{`
+          /* Sembunyikan dari layar normal, tapi biarkan tetap di-render agar bisa dihitung tingginya */
+          #receipt-portal-container {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            visibility: hidden;
+            width: 58mm;
+            background: white;
+            color: black;
+          }
+
           @media print {
             @page {
               margin: 0;
-              width: 58mm;
+              /* INI DIA TRIKNYA! Kita berikan ukuran halaman persis setinggi struk */
+              size: 58mm ${pageHeight};
             }
             body {
               margin: 0;
@@ -55,61 +83,80 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
             body > *:not(#receipt-portal-container) {
               display: none !important;
             }
+            #receipt-portal-container {
+              position: static;
+              visibility: visible;
+            }
           }
+          
           .receipt-container {
-            width: 58mm;
-            max-width: 100%;
+            width: 100%;
             margin: 0 auto;
             padding: 4mm;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            line-height: 1.2;
+            font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
             color: black;
           }
           .receipt-divider {
             border-top: 1px dashed black;
-            margin: 4px 0;
+            margin: 8px 0;
           }
           .receipt-text-center { text-align: center; }
           .receipt-text-right { text-align: right; }
           .receipt-text-left { text-align: left; }
           .receipt-flex-between { display: flex; justify-content: space-between; }
-          .receipt-bold { font-weight: bold; }
         `}</style>
         
-        <div id="print-area" className="receipt-container">
+        <div id="print-area" className="receipt-container" ref={contentRef}>
           {/* Header */}
-          <div className="receipt-text-center" style={{ marginBottom: '8px' }}>
+          <div className="receipt-text-center" style={{ marginBottom: '16px' }}>
             <img 
               src="/logo-bolu-anisa.svg" 
               alt="Logo Bolu Anisa" 
-              style={{ width: '48px', height: '48px', margin: '0 auto 4px auto', filter: 'grayscale(100%) contrast(200%)' }}
+              style={{ width: '80px', height: '80px', margin: '0 auto 8px auto', filter: 'grayscale(100%) contrast(200%)' }}
             />
-            <div className="receipt-bold" style={{ fontSize: '14px', textTransform: 'uppercase' }}>Bolu Anisa</div>
-            <div style={{ fontSize: '10px' }}>Jl. Contoh No. 123, Kota Anda</div>
-            <div style={{ fontSize: '10px' }}>Telp: 0812-3456-7890</div>
+            <div>Toko Oleh Oleh Anisa</div>
+            <div>Toko Oleh Oleh Anisa</div>
+            <div>Jl. Beringin</div>
+            <div>Instagram : bolu_anisa</div>
+          </div>
+
+          {/* Transaction Info */}
+          <div style={{ marginBottom: '12px' }}>
+            <div className="receipt-flex-between">
+              <span>Kasir</span>
+              <span>{data.cashierName || 'Bolu Anisa'}</span>
+            </div>
+            <div className="receipt-flex-between">
+              <span>Waktu</span>
+              <span>{format(data.date, 'dd MMM yyyy, HH:mm', { locale: id })}</span>
+            </div>
+            <div className="receipt-flex-between">
+              <span>No. Struk</span>
+              <span>{data.transactionId.substring(0, 8).toUpperCase()}</span>
+            </div>
+            <div className="receipt-flex-between">
+              <span>Bayar</span>
+              <span>Tunai</span>
+            </div>
           </div>
 
           <div className="receipt-divider" />
-
-          {/* Transaction Info */}
-          <div className="receipt-flex-between" style={{ fontSize: '10px', marginBottom: '2px' }}>
-            <span>{format(data.date, 'dd/MM/yy HH:mm', { locale: id })}</span>
-            <span>Kasir: {data.cashierName}</span>
-          </div>
-          <div className="receipt-flex-between" style={{ fontSize: '10px', marginBottom: '4px' }}>
-            <span>No: {data.transactionId.substring(0, 8).toUpperCase()}</span>
+          
+          <div className="receipt-text-center" style={{ margin: '8px 0' }}>
+            <span>### SALINAN ###</span>
           </div>
 
           <div className="receipt-divider" />
 
           {/* Items */}
-          <div style={{ marginBottom: '4px', marginTop: '4px' }}>
+          <div style={{ margin: '8px 0' }}>
             {data.items.map((item, index) => (
-              <div key={index} style={{ marginBottom: '6px' }}>
-                <div className="receipt-bold" style={{ fontSize: '11px', marginBottom: '2px' }}>{item.name}</div>
-                <div className="receipt-flex-between" style={{ fontSize: '11px' }}>
-                  <span>{item.quantity} x {formatCurrency(item.price).replace('Rp','').trim()}</span>
+              <div key={index} style={{ marginBottom: '8px' }}>
+                <div style={{ marginBottom: '2px' }}>{item.name}</div>
+                <div className="receipt-flex-between">
+                  <span>{formatCurrency(item.price).replace('Rp','').trim()} x {item.quantity}</span>
                   <span>{formatCurrency(item.subtotal).replace('Rp','').trim()}</span>
                 </div>
               </div>
@@ -118,29 +165,40 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
 
           <div className="receipt-divider" />
 
-          {/* Totals */}
-          <div style={{ marginTop: '4px', marginBottom: '4px' }}>
-            <div className="receipt-flex-between receipt-bold" style={{ fontSize: '12px', marginBottom: '2px' }}>
-              <span>TOTAL</span>
-              <span>{formatCurrency(data.totalAmount)}</span>
-            </div>
-            <div className="receipt-flex-between" style={{ fontSize: '11px', marginBottom: '2px' }}>
-              <span>TUNAI</span>
-              <span>{formatCurrency(data.cashReceived)}</span>
-            </div>
-            <div className="receipt-flex-between" style={{ fontSize: '11px' }}>
-              <span>KEMBALI</span>
-              <span>{formatCurrency(data.change)}</span>
-            </div>
+          {/* Subtotal */}
+          <div className="receipt-flex-between" style={{ margin: '8px 0' }}>
+            <span>Subtotal</span>
+            <span>{formatCurrency(data.totalAmount).replace('Rp','').trim()}</span>
           </div>
 
           <div className="receipt-divider" />
 
+          {/* Total */}
+          <div className="receipt-flex-between" style={{ margin: '8px 0' }}>
+            <span>Total ({data.items.reduce((acc, item) => acc + item.quantity, 0)})</span>
+            <span>{formatCurrency(data.totalAmount).replace('Rp','').trim()}</span>
+          </div>
+
+          <div className="receipt-divider" />
+
+          {/* Payment */}
+          <div style={{ margin: '12px 0' }}>
+            <div className="receipt-flex-between" style={{ marginBottom: '2px' }}>
+              <span>Bayar</span>
+              <span>{formatCurrency(data.cashReceived).replace('Rp','').trim()}</span>
+            </div>
+            <div className="receipt-flex-between">
+              <span>Kembali</span>
+              <span>{formatCurrency(data.change).replace('Rp','').trim()}</span>
+            </div>
+          </div>
+
+          <div style={{ height: '24px' }} />
+
           {/* Footer */}
-          <div className="receipt-text-center" style={{ marginTop: '8px', fontSize: '10px' }}>
-            <div style={{ marginBottom: '2px' }}>Terima Kasih Atas Kunjungan Anda</div>
-            <div style={{ marginBottom: '4px' }}>Layanan Konsumen: 0812-3456-7890</div>
-            <div style={{ fontStyle: 'italic', fontSize: '9px' }}>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</div>
+          <div className="receipt-text-center" style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '4px' }}>TERIMA KASIH</div>
+            <div>SELAMAT BELANJA KEMBALI</div>
           </div>
         </div>
       </div>
