@@ -94,9 +94,10 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
             margin: 0 auto;
             padding: 2mm; /* Reduced padding slightly to give more room */
             font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans Mono', monospace;
-            font-size: 11px; /* Reduced from 14px to 11px */
+            font-size: 12px; /* Reduced from 14px to 11px */
             line-height: 1.3;
             color: black;
+            text-transform: uppercase;
           }
           .receipt-divider {
             border-top: 1px dashed black;
