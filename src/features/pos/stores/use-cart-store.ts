@@ -71,15 +71,13 @@ export const useCartStore = create<CartStore>()(
       },
 
       getTaxAmount: () => {
-        const subtotal = get().getSubtotal();
-        const afterDiscount = Math.max(0, subtotal - get().discount);
-        return afterDiscount * get().taxRate;
+        return 0; // Forced to 0 regardless of localStorage
       },
 
       getTotal: () => {
         const subtotal = get().getSubtotal();
         const afterDiscount = Math.max(0, subtotal - get().discount);
-        return afterDiscount + get().getTaxAmount();
+        return afterDiscount; // Pure total, no tax added
       },
     }),
     {
