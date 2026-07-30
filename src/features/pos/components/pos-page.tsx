@@ -121,12 +121,12 @@ export function POSPage({
 
   return (
     <>
-      <div className="flex h-full relative print:hidden">
-        <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] h-full pb-20 lg:pb-0">
-        <ProductCatalog products={initialProducts} categories={initialCategories} />
-      </div>
+      <div className="flex h-full relative print:hidden w-full overflow-hidden">
+        <div className="flex-1 min-w-0 h-full pb-20 lg:pb-0">
+          <ProductCatalog products={initialProducts} categories={initialCategories} />
+        </div>
 
-      <div className="hidden lg:block w-[320px] xl:w-[400px] h-full flex-shrink-0 ml-6 relative">
+        <div className="hidden lg:block w-[300px] xl:w-[350px] 2xl:w-[400px] h-full flex-shrink-0 ml-4 lg:ml-6 relative">
         <div className="h-full pb-[140px]">
           <ShoppingCart />
         </div>

@@ -129,9 +129,9 @@ export function ShoppingCart() {
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs bg-black/20 px-2 py-1 rounded">F4</span>
         </button>
 
-        <div className="flex gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-3">
           {['Tunai', 'QRIS', 'Kartu', 'Transfer'].map(method => (
-            <button key={method} className="flex-1 py-2 text-xs font-medium border rounded-lg bg-card hover:bg-muted transition-colors">
+            <button key={method} className="flex-1 min-w-[60px] py-2 text-xs font-medium border rounded-lg bg-card hover:bg-muted transition-colors">
               {method}
             </button>
           ))}
