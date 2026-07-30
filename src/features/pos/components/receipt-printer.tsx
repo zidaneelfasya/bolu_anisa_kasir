@@ -92,15 +92,15 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
           .receipt-container {
             width: 100%;
             margin: 0 auto;
-            padding: 4mm;
+            padding: 2mm; /* Reduced padding slightly to give more room */
             font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans Mono', monospace;
-            font-size: 14px;
-            line-height: 1.4;
+            font-size: 11px; /* Reduced from 14px to 11px */
+            line-height: 1.3;
             color: black;
           }
           .receipt-divider {
             border-top: 1px dashed black;
-            margin: 8px 0;
+            margin: 6px 0;
           }
           .receipt-text-center { text-align: center; }
           .receipt-text-right { text-align: right; }
@@ -110,20 +110,20 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
         
         <div id="print-area" className="receipt-container" ref={contentRef}>
           {/* Header */}
-          <div className="receipt-text-center" style={{ marginBottom: '16px' }}>
+          <div className="receipt-text-center" style={{ marginBottom: '12px' }}>
             <img 
               src="/logo-bolu-anisa.svg" 
               alt="Logo Bolu Anisa" 
-              style={{ width: '80px', height: '80px', margin: '0 auto 8px auto', filter: 'grayscale(100%) contrast(200%)' }}
+              style={{ width: '60px', height: '60px', margin: '0 auto 8px auto', filter: 'grayscale(100%) contrast(200%)' }}
             />
-            <div>Toko Oleh Oleh Anisa</div>
+            <div style={{ fontSize: '13px', fontWeight: 'bold' }}>Toko Oleh Oleh Anisa</div>
             <div>Toko Oleh Oleh Anisa</div>
             <div>Jl. Beringin</div>
             <div>Instagram : bolu_anisa</div>
           </div>
 
           {/* Transaction Info */}
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: '8px' }}>
             <div className="receipt-flex-between">
               <span>Kasir</span>
               <span>{data.cashierName || 'Bolu Anisa'}</span>
@@ -144,16 +144,16 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
 
           <div className="receipt-divider" />
           
-          <div className="receipt-text-center" style={{ margin: '8px 0' }}>
+          <div className="receipt-text-center" style={{ margin: '6px 0' }}>
             <span>### SALINAN ###</span>
           </div>
 
           <div className="receipt-divider" />
 
           {/* Items */}
-          <div style={{ margin: '8px 0' }}>
+          <div style={{ margin: '6px 0' }}>
             {data.items.map((item, index) => (
-              <div key={index} style={{ marginBottom: '8px' }}>
+              <div key={index} style={{ marginBottom: '6px' }}>
                 <div style={{ marginBottom: '2px' }}>{item.name}</div>
                 <div className="receipt-flex-between">
                   <span>{formatCurrency(item.price).replace('Rp','').trim()} x {item.quantity}</span>
@@ -166,7 +166,7 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
           <div className="receipt-divider" />
 
           {/* Subtotal */}
-          <div className="receipt-flex-between" style={{ margin: '8px 0' }}>
+          <div className="receipt-flex-between" style={{ margin: '6px 0' }}>
             <span>Subtotal</span>
             <span>{formatCurrency(data.totalAmount).replace('Rp','').trim()}</span>
           </div>
@@ -174,7 +174,7 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
           <div className="receipt-divider" />
 
           {/* Total */}
-          <div className="receipt-flex-between" style={{ margin: '8px 0' }}>
+          <div className="receipt-flex-between" style={{ margin: '6px 0' }}>
             <span>Total ({data.items.reduce((acc, item) => acc + item.quantity, 0)})</span>
             <span>{formatCurrency(data.totalAmount).replace('Rp','').trim()}</span>
           </div>
@@ -182,7 +182,7 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
           <div className="receipt-divider" />
 
           {/* Payment */}
-          <div style={{ margin: '12px 0' }}>
+          <div style={{ margin: '8px 0' }}>
             <div className="receipt-flex-between" style={{ marginBottom: '2px' }}>
               <span>Bayar</span>
               <span>{formatCurrency(data.cashReceived).replace('Rp','').trim()}</span>
@@ -193,11 +193,11 @@ export const ReceiptPrinter = React.forwardRef<HTMLDivElement, ReceiptPrinterPro
             </div>
           </div>
 
-          <div style={{ height: '24px' }} />
+          <div style={{ height: '16px' }} />
 
           {/* Footer */}
-          <div className="receipt-text-center" style={{ marginBottom: '16px' }}>
-            <div style={{ marginBottom: '4px' }}>TERIMA KASIH</div>
+          <div className="receipt-text-center" style={{ marginBottom: '12px' }}>
+            <div style={{ marginBottom: '2px' }}>TERIMA KASIH</div>
             <div>SELAMAT BELANJA KEMBALI</div>
           </div>
         </div>
