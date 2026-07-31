@@ -1,16 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { Search, Bell, Wifi, MonitorSmartphone, Menu } from 'lucide-react';
+import { Bell, Wifi, MonitorSmartphone, Menu, UserCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
+import { UserProfile } from '@/lib/actions/auth';
 
 export function Header({ 
   collapsed,
-  setMobileOpen 
+  setMobileOpen,
+  user
 }: { 
   collapsed: boolean;
   setMobileOpen: (open: boolean) => void;
+  user: UserProfile;
 }) {
   const [time, setTime] = React.useState<Date | null>(null);
 
@@ -27,7 +29,7 @@ export function Header({
         collapsed ? "md:left-[80px]" : "md:left-[260px]"
       )}
     >
-      {/* Left section: Search & Hamburger */}
+      {/* Left section: Hamburger (Search removed) */}
       <div className="flex items-center flex-1 max-w-md gap-3">
         <button 
           onClick={() => setMobileOpen(true)}
@@ -35,29 +37,16 @@ export function Header({
         >
           <Menu className="h-6 w-6" />
         </button>
-
-        <div className="relative group flex-1 hidden sm:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input 
-            placeholder="Cari produk... (Tekan F2 / scan barcode)" 
-            className="pl-9 bg-muted/50 border-transparent focus-visible:ring-primary/20 focus-visible:border-primary focus-visible:bg-background transition-all rounded-xl h-10 w-full"
-          />
-        </div>
       </div>
 
       {/* Right section: Info & Actions */}
       <div className="flex items-center space-x-2 md:space-x-4">
-        {/* Mobile Search Icon */}
-        <button className="sm:hidden p-2 text-muted-foreground hover:bg-muted rounded-full">
-          <Search className="h-5 w-5" />
-        </button>
-
-        {/* Branch / Store switcher indicator */}
+        {/* User Info */}
         <div className="hidden md:flex items-center px-3 py-1.5 bg-muted/50 rounded-lg text-sm border border-border/50">
-          <MonitorSmartphone className="h-4 w-4 text-primary mr-2" />
+          <UserCircle2 className="h-4 w-4 text-primary mr-2" />
           <div className="flex flex-col">
-            <span className="font-semibold text-xs leading-none">Kasir Utama</span>
-            <span className="text-[10px] text-muted-foreground mt-0.5">Admin Kasir</span>
+            <span className="font-semibold text-xs leading-none">{user.name}</span>
+            <span className="text-[10px] text-muted-foreground mt-0.5">{user.role}</span>
           </div>
         </div>
 

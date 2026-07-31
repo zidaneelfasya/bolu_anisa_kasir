@@ -4,8 +4,9 @@ import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { cn } from '@/lib/utils';
+import { UserProfile } from '@/lib/actions/auth';
 
-export function MainLayout({ children }: { children: React.ReactNode }) {
+export function MainLayout({ children, user }: { children: React.ReactNode, user: UserProfile }) {
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -16,10 +17,12 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         setCollapsed={setCollapsed} 
         mobileOpen={mobileOpen} 
         setMobileOpen={setMobileOpen} 
+        user={user}
       />
       <Header 
         collapsed={collapsed} 
         setMobileOpen={setMobileOpen} 
+        user={user}
       />
       <main 
         className={cn(

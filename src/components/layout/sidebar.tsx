@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { UserProfile, signOutAction } from '@/lib/actions/auth';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -35,12 +36,12 @@ const navItems = [
   { name: 'Laporan', href: '/reports', icon: BarChart3 },
   { name: 'Keuangan', href: '/finance', icon: Wallet },
   { name: 'Promo', href: '/promotions', icon: Percent },
-  { name: 'Pengguna', href: '/users', icon: UserCircle },
+  { name: 'Pengguna', href: '/users', icon: UserCircle, role: 'SUPERADMIN' },
   { name: 'Pengaturan', href: '/settings', icon: Settings },
   { name: 'Pembelian', href: '/purchases', icon: ShoppingBag },
 ];
 
-function SidebarContent({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed?: (val: boolean) => void }) {
+function SidebarContent({ collapsed, setCollapsed, user }: { collapsed: boolean; setCollapsed?: (val: boolean) => void; user: UserProfile }) {
   const pathname = usePathname();
 
   return (
@@ -78,7 +79,7 @@ function SidebarContent({ collapsed, setCollapsed }: { collapsed: boolean; setCo
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 px-3 scrollbar-hide">
         <nav className="space-y-1.5">
-          {navItems.map((item) => {
+          {navItems.filter(item => !item.role || item.role === user.role).map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.name} href={item.href}>
@@ -107,21 +108,24 @@ function SidebarContent({ collapsed, setCollapsed }: { collapsed: boolean; setCo
         <div className={cn('flex items-center', collapsed ? 'justify-center' : 'justify-between')}>
           {!collapsed && (
             <div className="flex items-center overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                A
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0 uppercase">
+                {user.name.charAt(0)}
               </div>
               <div className="ml-3 overflow-hidden">
-                <p className="text-sm font-semibold truncate">Admin Kasir</p>
-                <p className="text-xs text-muted-foreground truncate">Super Admin</p>
+                <p className="text-sm font-semibold truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.role}</p>
               </div>
             </div>
           )}
-          <button 
-            className={cn('text-muted-foreground hover:text-destructive transition-colors', collapsed && 'p-2 bg-muted rounded-full')}
-            title="Logout"
-          >
-            <LogOut size={collapsed ? 18 : 20} />
-          </button>
+          <form action={signOutAction}>
+             <button 
+               type="submit"
+               className={cn('text-muted-foreground hover:text-destructive transition-colors', collapsed && 'p-2 bg-muted rounded-full')}
+               title="Logout"
+             >
+               <LogOut size={collapsed ? 18 : 20} />
+             </button>
+          </form>
         </div>
       </div>
     </>
@@ -132,12 +136,14 @@ export function Sidebar({
   collapsed, 
   setCollapsed,
   mobileOpen,
-  setMobileOpen
+  setMobileOpen,
+  user
 }: { 
   collapsed: boolean; 
   setCollapsed: (val: boolean) => void;
   mobileOpen: boolean;
   setMobileOpen: (val: boolean) => void;
+  user: UserProfile;
 }) {
   return (
     <>
@@ -147,14 +153,14 @@ export function Sidebar({
         animate={{ width: collapsed ? '80px' : '260px' }}
         className="bg-card border-r hidden md:flex flex-col h-screen fixed left-0 top-0 z-40 transition-all duration-300 shadow-sm"
       >
-        <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} />
+        <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
       </motion.aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-[260px] p-0 flex flex-col bg-card border-r">
           <SheetTitle className="sr-only">Navigasi</SheetTitle>
-          <SidebarContent collapsed={false} />
+          <SidebarContent collapsed={false} user={user} />
         </SheetContent>
       </Sheet>
     </>
