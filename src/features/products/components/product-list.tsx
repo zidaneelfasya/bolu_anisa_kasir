@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus, Pencil, Trash2, Package, Image as ImageIcon } from 'lucide-react';
+import { MoreHorizontal, Plus, Pencil, Trash2, Package, Image as ImageIcon, Printer } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const DataTable = dynamic(
@@ -10,6 +10,8 @@ const DataTable = dynamic(
   { ssr: false, loading: () => <div className="h-64 w-full bg-muted animate-pulse rounded-xl"></div> }
 );
 import { ImportProductDialog } from './import-product-dialog';
+// @ts-expect-error - react-barcode doesn't have types out of the box
+import Barcode from 'react-barcode';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils/format';
 import {
@@ -79,6 +81,7 @@ export function ProductList({ initialData, categories }: { initialData: Product[
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [isPrintBarcodeOpen, setIsPrintBarcodeOpen] = React.useState(false);
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
@@ -198,6 +201,15 @@ export function ProductList({ initialData, categories }: { initialData: Product[
     setIsDeleteOpen(true);
   };
 
+  const handlePrintBarcodeClick = (product: Product) => {
+    if (!product.barcode && !product.sku) {
+      toast.error('Produk ini tidak memiliki barcode atau SKU');
+      return;
+    }
+    setSelectedProduct(product);
+    setIsPrintBarcodeOpen(true);
+  };
+
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'name',
@@ -297,6 +309,9 @@ export function ProductList({ initialData, categories }: { initialData: Product[
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => navigator.clipboard.writeText(product.barcode || product.sku)}>
                 Copy Barcode
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => handlePrintBarcodeClick(product)}>
+                <Printer className="mr-2 h-4 w-4" /> Cetak Barcode
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-primary cursor-pointer" onClick={() => handleEditClick(product)}>
@@ -467,6 +482,70 @@ export function ProductList({ initialData, categories }: { initialData: Product[
             <Button type="button" variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
             <Button type="button" variant="destructive" onClick={onConfirmDelete} disabled={isLoading}>
               {isLoading ? 'Menghapus...' : 'Ya, Hapus'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintBarcodeOpen} onOpenChange={setIsPrintBarcodeOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cetak Barcode</DialogTitle>
+            <DialogDescription>
+              Barcode untuk produk <b>{selectedProduct?.name}</b>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6 space-y-4 bg-white rounded-lg border" id="barcode-print-area">
+            {selectedProduct && (selectedProduct.barcode || selectedProduct.sku) && (
+              <Barcode 
+                value={selectedProduct.barcode || selectedProduct.sku} 
+                width={2} 
+                height={80} 
+                displayValue={true}
+                background="#ffffff"
+                lineColor="#000000"
+              />
+            )}
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setIsPrintBarcodeOpen(false)}>Tutup</Button>
+            <Button type="button" onClick={() => {
+              const printContent = document.getElementById('barcode-print-area');
+              const windowPrint = window.open('', '', 'width=800,height=600');
+              if (windowPrint && printContent) {
+                windowPrint.document.write(`
+                  <html>
+                    <head>
+                      <title>Print Barcode - ${selectedProduct?.name}</title>
+                      <style>
+                        body {
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                          height: 100vh;
+                          margin: 0;
+                          background: white;
+                        }
+                        @media print {
+                          @page { size: auto; margin: 0mm; }
+                          body { margin: 1cm; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      ${printContent.innerHTML}
+                    </body>
+                  </html>
+                `);
+                windowPrint.document.close();
+                windowPrint.focus();
+                setTimeout(() => {
+                  windowPrint.print();
+                  windowPrint.close();
+                }, 250);
+              }
+            }}>
+              <Printer className="mr-2 h-4 w-4" /> Cetak
             </Button>
           </DialogFooter>
         </DialogContent>
