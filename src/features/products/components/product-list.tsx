@@ -10,7 +10,6 @@ const DataTable = dynamic(
   { ssr: false, loading: () => <div className="h-64 w-full bg-muted animate-pulse rounded-xl"></div> }
 );
 import { ImportProductDialog } from './import-product-dialog';
-// @ts-expect-error - react-barcode doesn't have types out of the box
 import Barcode from 'react-barcode';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils/format';

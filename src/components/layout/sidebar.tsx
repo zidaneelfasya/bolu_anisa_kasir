@@ -25,6 +25,7 @@ import {
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { UserProfile, signOutAction } from '@/lib/actions/auth';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -105,9 +106,9 @@ function SidebarContent({ collapsed, setCollapsed, user }: { collapsed: boolean;
 
       {/* Bottom User Area */}
       <div className="p-4 border-t border-border/50">
-        <div className={cn('flex items-center', collapsed ? 'justify-center' : 'justify-between')}>
+        <div className={cn('flex items-center gap-2', collapsed ? 'flex-col justify-center' : 'justify-between')}>
           {!collapsed && (
-            <div className="flex items-center overflow-hidden">
+            <div className="flex items-center overflow-hidden flex-1">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0 uppercase">
                 {user.name.charAt(0)}
               </div>
@@ -117,15 +118,18 @@ function SidebarContent({ collapsed, setCollapsed, user }: { collapsed: boolean;
               </div>
             </div>
           )}
-          <form action={signOutAction}>
-             <button 
-               type="submit"
-               className={cn('text-muted-foreground hover:text-destructive transition-colors', collapsed && 'p-2 bg-muted rounded-full')}
-               title="Logout"
-             >
-               <LogOut size={collapsed ? 18 : 20} />
-             </button>
-          </form>
+          <div className={cn('flex items-center gap-1', collapsed && 'flex-col')}>
+            <ThemeSwitcher />
+            <form action={signOutAction}>
+               <button 
+                 type="submit"
+                 className={cn('text-muted-foreground hover:text-destructive transition-colors h-9 w-9 flex items-center justify-center', collapsed && 'bg-muted rounded-full')}
+                 title="Logout"
+               >
+                 <LogOut size={collapsed ? 18 : 20} />
+               </button>
+            </form>
+          </div>
         </div>
       </div>
     </>
