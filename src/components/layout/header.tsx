@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Bell, Wifi, MonitorSmartphone, Menu, UserCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserProfile } from '@/lib/actions/auth';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 export function Header({ 
   collapsed,
@@ -59,6 +60,9 @@ export function Header({
         <div className="hidden sm:flex text-success items-center justify-center h-10 w-10 rounded-full hover:bg-success/10 transition-colors cursor-help" title="Online">
           <Wifi className="h-5 w-5" />
         </div>
+
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
 
         {/* Notifications */}
         <button className="relative text-muted-foreground hover:text-foreground h-10 w-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors">
